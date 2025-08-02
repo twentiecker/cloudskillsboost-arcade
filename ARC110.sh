@@ -20,19 +20,18 @@ gcloud services disable dataflow.googleapis.com
 gcloud services enable dataflow.googleapis.com
 gcloud services enable cloudscheduler.googleapis.com
 
+# buat bucket
 gsutil mb gs://$BUCKET_NAME
 
+# buat topic
 gcloud pubsub topics create $TOPIC_ID
 
+# app engine
 gcloud app create --region=$REGION
-
-sleep 100
-
+# buat scheduler jobs (kalao enable api, pilih 'y')
 gcloud scheduler jobs create pubsub quicklab --schedule="* * * * *" \
     --topic=$TOPIC_ID --message-body="$MESSAGE"
-
-sleep 20
-
+# running scheduler jobs
 gcloud scheduler jobs run quicklab
 
 
@@ -45,6 +44,7 @@ export REGION=$REGION
 export TOPIC_ID=$TOPIC_ID
 export BUCKET_NAME=$BUCKET_NAME
 
+# task 4
 # Clone the repository and navigate to the required directory
 git clone https://github.com/GoogleCloudPlatform/python-docs-samples.git
 cd python-docs-samples/pubsub/streaming-analytics
