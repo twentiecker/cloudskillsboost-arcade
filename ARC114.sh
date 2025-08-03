@@ -1,5 +1,6 @@
 # Task 1. Create an API key
 # 1. For this task, you need to create an API key to use in this and other tasks when sending a request to the Natural Language API.
+# 2. Save the API key to use in other tasks.
 
 
 # Task 2. Make an entity analysis request and call the Natural Language API
