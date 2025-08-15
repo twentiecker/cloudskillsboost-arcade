@@ -9,7 +9,8 @@
 #### Create Peering connection workspace-vpc with private-vpc
 
 ```bash
-gcloud compute networks peerings create workspace-to-private --network=workspace-vpc --peer-network=private-vpc --auto-create-routes
+gcloud compute networks peerings create workspace-to-private \
+    --network=workspace-vpc --peer-network=private-vpc --auto-create-routes
 ```
 
 #### Create Peering connection private-vpc with workspace-vpc
