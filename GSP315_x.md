@@ -1,0 +1,157 @@
+# Store, Process, and Manage Data on Google Cloud: Challenge Lab <br>ARC100
+
+---
+
+## Task 1. Create a bucket
+
+#### Create a bucket called <BUCKET_NAME> for the storage of the photographs. Ensure the resource is created in the <REGION> region.
+
+```bash
+export REGION=<REGION>
+```
+
+```bash
+export BUCKET_NAME=<BUCKET_NAME>
+```
+
+```bash
+gsutil mb -l $REGION gs://$BUCKET_NAME
+```
+
+---
+
+## Task 2. Create a Pub/Sub topic
+
+#### Create a Pub/Sub topic called <TOPIC_NAME> for the Cloud Run function to send messages.
+
+```bash
+export TOPIC_NAME=<TOPIC_NAME>
+```
+
+```bash
+gcloud pubsub topics create $TOPIC_NAME
+```
+
+---
+
+## Task 3. Create the thumbnail Cloud Run function
+
+#### Create a Cloud Run function <FUNCTION_NAME> that will to create a thumbnail from an image added to the <BUCKET_NAME> bucket.
+
+#### Ensure the Cloud Run function is using the Cloud Run function environment (which is 2nd generation). Ensure the resource is created in the <REGION> region and <REGION>-c zone.
+
+#### Enable Required Services
+
+```bash
+gcloud services enable \
+  artifactregistry.googleapis.com \
+  cloudfunctions.googleapis.com \
+  cloudbuild.googleapis.com \
+  eventarc.googleapis.com \
+  run.googleapis.com \
+  logging.googleapis.com \
+  pubsub.googleapis.com
+```
+
+#### Set Project Variables
+
+```bash
+export PROJECT_ID=$(gcloud config get-value project)
+```
+
+```bash
+PROJECT_NUMBER=$(gcloud projects list --filter="project_id:$PROJECT_ID" --format='value(project_number)')
+```
+
+```bash
+SERVICE_ACCOUNT=$(gsutil kms serviceaccount -p $PROJECT_NUMBER)
+```
+
+#### Assign Pub/Sub Publisher Role
+
+```bash
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+  --member serviceAccount:$SERVICE_ACCOUNT \
+  --role roles/pubsub.publisher
+```
+
+#### 1. Create a Cloud Run function (2nd generation) called <FUNCTION_NAME> using Node.js 22 and setting the trigger to Cloud Storage.
+
+#### 2. Make sure you set the Entry point (Function to execute) to <FUNCTION_NAME>.
+
+#### 3. Add provided lab code to the index.js
+
+```bash
+nano index.js
+```
+
+#### 4. Add provided lab code to the package.json
+
+```bash
+nano package.json
+```
+
+#### Deploy the Function
+
+```bash
+export FUNCTION_NAME=<FUNCTION_NAME>
+```
+
+```bash
+gcloud functions deploy $FUNCTION_NAME \
+  --gen2 \
+  --runtime nodejs22 \
+  --entry-point $FUNCTION_NAME \
+  --source . \
+  --region $REGION \
+  --trigger-bucket $BUCKET_NAME \
+  --trigger-location $REGION \
+  --max-instances 1 \
+  --quiet
+```
+
+#### If you see the following error:
+
+**ERROR**:`(gcloud.functions.deploy) ResponseError: status=[403], code=[Ok], message=[Validation failed for trigger projects/qwiklabs-gcp-04-0a6a1d28c7e3/locations/us-east1/triggers/wild-thumbnail-creator-483033: Permission "storage.buckets.get" denied on "Bucket \"wild-bucket-qwiklabs-gcp-04-0a6a1d28c7e3\" could not be validated. Please verify that the bucket exists and that the Eventarc service account has permission."]`
+
+or
+
+**ERROR**:`(gcloud.functions.deploy) ResponseError: status=[400], code=[Ok], message=[Validation failed for trigger projects/qwiklabs-gcp-01-822619484359/locations/us-east4/triggers/travel-thumbnail-maker-167346: Invalid resource state for "": Permission denied while using the Eventarc Service Agent. If you recently started to use Eventarc, it may take a few minutes before all necessary permissions are propagated to the Service Agent. Otherwise, verify that it has Eventarc Service Agent role.]`
+
+It means the deployment failed because the Eventarc service account does not yet have permission to access your Cloud Storage bucket, or the bucket validation process hasn’t completed.
+
+#### Solution:
+
+Wait for a few seconds to let the permissions propagate, then run the deployment command again.
+
+## Test the Infrastructure
+
+#### To test the function, upload a JPG or PNG image into the bucket.
+
+#### Note: You need to upload one JPG or PNG image into the bucket to verify the thumbnail was created (after creating the function successfully). Use any JPG or PNG image, or use this image https://storage.googleapis.com/cloud-training/arc101/travel.jpg by downloading the image to your machine and then uploading that file to your bucket.
+
+#### Download a test image
+
+```bash
+wget https://storage.googleapis.com/cloud-training/gsp315/map.jpg
+```
+
+#### 1. Upload a PNG or JPG image to $BUCKET_NAME bucket.
+
+```bash
+gsutil cp map.jpg gs://$BUCKET_NAME
+```
+
+#### 2. You will see a thumbnail image appear shortly afterwards (use REFRESH in the bucket details).
+
+---
+
+## Task 4. Remove the previous cloud engineer
+
+#### You will see that there are two users defined in the project.
+
+#### One is your account (student-00-12f3cac619ec@qwiklabs.net with the role of Owner).
+
+#### The other is the previous cloud engineer (student-04-985f26d78c35@qwiklabs.net with the role of Viewer).
+
+#### 1. Remove the previous cloud engineer’s access from the project.
