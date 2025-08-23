@@ -1,0 +1,180 @@
+# Develop GenAI Apps with Gemini and Streamlit: Challenge Lab
+
+## Task 1. Use cURL to test a prompt with the API
+
+#### Before you can begin to create the Chef app in Vertex AI, you should test connectivity with the Gemini API.
+
+#### 1. In the Google Cloud console, on the Navigation menu (Navigation menu icon), click Vertex AI > Workbench.
+
+#### 2. Find the Workbench instance name instance and click on the Open JupyterLab button.
+
+#### 3. From the left hand menu, modify prompt.ipynb to include your project_ID and region within cell 3. You can get these in the left panel of the lab instructions.
+
+#### 4. From the left hand menu, modify prompt.ipynb to use the following prompt with cURL within cell 5, by replacing the provided lab prompt.
+
+#### 5. Run all cells and observe the results.
+
+#### 6. Save prompt.ipynb.
+
+---
+
+## Task 2. Write Streamlit framework and prompt Python code to complete chef.py
+
+#### For this task you will clone a GitHub repo, and download the chef.py file. Then you will add Streamlit framework code in the chef.py file for the wine preference, to complete the user interface for the application. You will also include a custom Gemini prompt (similar to the one in task 1), but this one includes variables.
+
+#### 1. Using Cloud Shell clone the repo below from the default directory.
+
+```bash
+git clone https://github.com/GoogleCloudPlatform/generative-ai.git
+```
+
+#### 2. Navigate to the gemini-streamlit-cloudrun directory.
+
+```bash
+cd generative-ai/gemini/sample-apps/gemini-streamlit-cloudrun
+```
+
+#### 3. Specify the dependencies in the requirements.txt file:
+
+```bash
+google-cloud-logging
+```
+
+#### 4. Download the chef.py file using the provided lab command.
+
+#### 5. Open the chef.py file in the Cloud Shell Editor and review the code.
+
+#### 6. For Project ID, use Project ID, and for Location, use Region.
+
+#### 7. Add Streamlit framework radio button option for the wine variable. Include options for Red, White and None.
+
+```bash
+wine = st.radio ("What wine do you prefer?\n\n", ["Red", "White", "None"], key="wine", horizontal=True)
+```
+
+#### 8. Save the chef.py file.
+
+#### 9. Add the new Gemini provided lab prompt in Python code.
+
+#### 10. Save the chef.py file.
+
+#### Once you are satisfied with the Gemini prompt code you added in chef.py, upload the file to bucket by running provided lab command in your cloud shell. On cloud console, click Open terminal to open the session in the Cloud Shell.
+
+---
+
+## Task 3. Test the application
+
+#### For this task you will use the terminal in Cloud Shell to run and test your application.
+
+#### Make sure your are still in this path, generative-ai/gemini/sample-apps/gemini-streamlit-cloudrun.
+
+#### 1. Setup the python virtual environment and install the dependencies.
+
+```bash
+python3 -m venv gemini-streamlit-cloudrun
+```
+
+```bash
+source gemini-streamlit-cloudrun/bin/activate
+```
+
+```bash
+python3 -m pip install -r requirements.txt
+```
+
+#### 2. Set environment variables for PROJECT (as your <PROJECT_ID>) and REGION (as the <REGION> you are using in the lab environment).
+
+```bash
+export PROJECT=<PROJECT_ID>
+```
+
+```bash
+export REGION=<REGION>
+```
+
+#### 3. Run the chef.py application and test it.
+
+```bash
+streamlit run chef.py \
+  --browser.serverAddress=localhost \
+  --server.enableCORS=false \
+  --server.enableXsrfProtection=false \
+  --server.port 8080
+```
+
+---
+
+## Task 4. Modify the Dockerfile and push image to the Artifact Registry
+
+#### In this task you modify the sample Dockerfile to use your chef.py file and push the Docker image to the Artifact Registry.
+
+#### 1. Use the Cloud Shell editor to modify the Dockerfile to use chef.py, then save the file. Change "app.py" from code below to "chef.py"
+
+```bash
+ENTRYPOINT ["streamlit", "run", "app.py", "--server.port=8080", "--server.address=0.0.0.0"]
+```
+
+#### 2. In Cloud Shell set the following environment variables.
+
+```bash
+export AR_REPO=chef-repo
+```
+
+```bash
+export SERVICE_NAME=chef-streamlit-app
+```
+
+#### 3. Create the Artifact Registry repository with the gcloud artifacts repositories create command and the following parameters.
+
+**repo name**: `$AR_REPO`
+
+**location**: `$REGION`
+
+**repository format**: `Docker`
+
+```bash
+gcloud artifacts repositories create $AR_REPO --location=$REGION --repository-format=Docker
+```
+
+#### 4. Submit the build with the gcloud builds submit command and the following parameters.
+
+**tag**: `"$REGION-docker.pkg.dev/$PROJECT/$AR_REPO/$SERVICE_NAME"`
+
+```bash
+gcloud builds submit --tag "$REGION-docker.pkg.dev/$PROJECT/$AR_REPO/$SERVICE_NAME"
+```
+
+---
+
+## Task 5. Deploy the application to Cloud Run and test
+
+#### In this task you deploy the application (as a Docker Artifact) to Cloud Run and then test the application as running from the Cloud Run service endpoint.
+
+#### 1. In Cloud Shell deploy the application (as a Docker Artifact), using gcloud run deploy command and the following parameter values:
+
+**port**: `8080`
+
+**image**: `"$REGION-docker.pkg.dev/$PROJECT/$AR_REPO/$SERVICE_NAME"`
+
+**flag**: `--allow-unauthenticated`
+
+**region**: `REGION`
+
+**platform**: `managed`
+
+**project**: `PROJECT`
+
+**set-env-vars**: `PROJECT=$PROJECT,REGION=$REGION`
+
+```bash
+gcloud run deploy $SERVICE_NAME \
+  --port=8080 \
+  --image="$REGION-docker.pkg.dev/$PROJECT/$AR_REPO/$SERVICE_NAME" \
+  --allow-unauthenticated \
+  --region=$REGION \
+  --platform=managed \
+  --project=$PROJECT \
+  --set-env-vars=PROJECT=$PROJECT,REGION=$REGION
+```
+
+#### 2. Test the application with the link provided.

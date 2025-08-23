@@ -1,7 +1,5 @@
 # Optimize Costs for Google Kubernetes Engine: Challenge Lab
 
----
-
 ## Task 1. Create a cluster and deploy your app
 
 #### 1. Before you can deploy the application, you'll need to create a cluster in the us-west1-a zone, and name it as onlineboutique-cluster-288.
