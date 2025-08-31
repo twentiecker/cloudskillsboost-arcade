@@ -1,7 +1,5 @@
 # Create VPC Peering Connection between VPCs
 
----
-
 ## Challenge scenario
 
 #### As a network administrator, you have been assigned with the responsibility of connecting two Virtual Private Clouds (VPCs) workspace_vpc and private_vpc in your project. This peering connection will establish a direct and secure communication pathway between the resources residing in each VPC, allowing them to interact seamlessly with each other.
